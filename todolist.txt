@@ -1,0 +1,5 @@
+- tambahkan manajemen inventaris
+- tambah update untuk transaksi
+- tambhakn table kategori sendiri untuk yang butuh kategori
+- buat transaksi kompleks
+- perbaiki bug layer hilang saat edit

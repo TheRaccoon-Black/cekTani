@@ -92,4 +92,19 @@ public function update(Request $request, $id)
         Bed::destroy($id);
         return redirect()->back()->with('success', 'Bedengan dihapus.');
     }
+
+    public function history($id)
+{
+    // Ambil bedengan beserta siklus tanam yang SUDAH SELESAI (harvested)
+    // Diurutkan dari yang paling baru selesai
+    $bed = Bed::with(['plantingCycles' => function($query) {
+        $query->where('status', 'harvested')
+              ->with('commodity') // Load nama tanaman
+              ->orderBy('updated_at', 'desc');
+    }, 'sector.land'])->findOrFail($id);
+
+    return view('beds.history', compact('bed'));
+}
+
+
 }

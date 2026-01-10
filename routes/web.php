@@ -4,7 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BedController;
 use App\Http\Controllers\LandController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CycleLogController;
 use App\Http\Controllers\CommodityController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\PlantingCycleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +21,9 @@ use App\Http\Controllers\CommodityController;
 |
 */
 
+Route::get('/test', function () {
+    return view('test');
+});
 Route::get('/', function () {
     return view('welcome');
 });
@@ -31,25 +38,41 @@ Route::get('/lands/{id}/map-sectors', [LandController::class, 'mapSectors'])->na
 Route::post('/lands/{id}/sectors', [LandController::class, 'storeSector'])->name('sectors.store');
 Route::delete('/sectors/{id}', [LandController::class, 'destroySector'])->name('sectors.destroy');
 
-// URL: /sectors/1/beds
 Route::get('/sectors/{id}/beds', [BedController::class, 'index'])->name('sectors.beds.index');
 
-// 2. Menyimpan bedengan baru ke dalam sektor
-// URL: /sectors/1/beds (Method: POST)
 Route::post('/sectors/{id}/beds', [BedController::class, 'store'])->name('beds.store');
 
-// 3. Menghapus bedengan
-// URL: /beds/5 (Method: DELETE)
 Route::delete('/beds/{id}', [BedController::class, 'destroy'])->name('beds.destroy');
 
-// Form Edit Bedengan
 Route::get('/beds/{id}/edit', [BedController::class, 'edit'])->name('beds.edit');
 
-// Proses Simpan Perubahan (Update)
 Route::put('/beds/{id}', [BedController::class, 'update'])->name('beds.update');
 
 Route::resource('commodities', CommodityController::class);
 
+Route::get('/beds/{id}/history', [BedController::class, 'history'])->name('beds.history');
+
+
+Route::post('/{id}/logs', [CycleLogController::class, 'store'])->name('cycles.logs.store');
+
+Route::delete('/logs/{id}', [CycleLogController::class, 'destroy'])->name('cycles.logs.destroy');
+Route::prefix('beds/{bed}')->group(function () {
+    Route::get('/planting-cycles/create', [PlantingCycleController::class, 'create'])->name('cycles.create');
+
+    Route::post('/planting-cycles', [PlantingCycleController::class, 'store'])->name('cycles.store');
+});
+
+Route::get('/finance', [TransactionController::class, 'index'])->name('finance.index');
+Route::get('/finance/create', [TransactionController::class, 'create'])->name('finance.create');
+Route::post('/finance', [TransactionController::class, 'store'])->name('finance.store');
+
+Route::post('/cycles/{id}/transaction', [TransactionController::class, 'storeForCycle'])->name('cycles.transactions.store');
+
+Route::prefix('cycles')->group(function () {
+    Route::put('/{id}/harvest', [PlantingCycleController::class, 'harvest'])->name('cycles.harvest');
+});
+
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::middleware('auth')->group(function () {
     Route::get('/lands/create', [LandController::class, 'create'])->name('lands.create');
     Route::get('/lands/{land}', [LandController::class, 'show'])->name('lands.show');
@@ -60,3 +83,4 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+Route::get('/{id}', [PlantingCycleController::class, 'show'])->name('cycles.show');

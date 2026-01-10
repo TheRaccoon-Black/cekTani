@@ -1,159 +1,225 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Tambah Lahan Baru') }}
-        </h2>
-    </x-slot>
+@extends('layouts.main')
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+@section('content')
+<div class="container-xxl flex-grow-1 container-p-y">
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold py-1 mb-0">
+            <span class="text-muted fw-light">Manajemen Lahan /</span> Tambah Baru
+        </h4>
+        <a href="{{ route('lands.index') }}" class="btn btn-label-secondary">
+            <span class="tf-icons bx bx-arrow-back me-1"></span> Kembali
+        </a>
+    </div>
 
-                    <form action="{{ route('lands.store') }}" method="POST" id="createForm">
-                        @csrf
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Nama Lahan</label>
-                                <input type="text" name="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required placeholder="Contoh: Kebun Jagung Blok A">
-                            </div>
+    <form action="{{ route('lands.store') }}" method="POST" id="createForm">
+        @csrf
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Alamat / Lokasi</label>
-                                <input type="text" name="address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="Nama desa atau jalan">
-                            </div>
+        <div class="row h-100">
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header border-bottom">
+                        <h5 class="card-title mb-0">Detail Informasi</h5>
+                    </div>
+                    <div class="card-body mt-4">
 
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700">Luas Lahan (m²)</label>
-                                <input type="number" step="0.01" name="area_size" id="area_size" readonly
-                                    class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm cursor-not-allowed">
-                                <small class="text-gray-500">Gambar area di peta untuk menghitung luas otomatis.</small>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nama Lahan <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text"><i class="bx bx-purchase-tag"></i></span>
+                                <input type="text" name="name" class="form-control" placeholder="Contoh: Kebun Jagung Blok A" required>
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Gambar Lahan</label>
-
-                            <div class="flex gap-4 mb-2 text-sm">
-                                <div class="flex items-center"><span class="w-3 h-3 bg-yellow-500 inline-block mr-1 opacity-50 border border-yellow-600"></span> Lahan Tetangga (Ada)</div>
-                                <div class="flex items-center"><span class="w-3 h-3 bg-blue-600 inline-block mr-1 opacity-50 border border-blue-600"></span> Lahan Baru (Sedang Digambar)</div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Lokasi / Alamat</label>
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text"><i class="bx bx-map"></i></span>
+                                <textarea name="address" class="form-control" rows="2" placeholder="Nama desa atau jalan..."></textarea>
                             </div>
+                        </div>
 
-                            <div id="map" style="height: 500px; width: 100%; border:1px solid #ccc; border-radius: 8px;"></div>
+                        <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+                            <i class="bx bx-info-circle me-2 fs-4"></i>
+                            <div style="font-size: 0.8rem;">
+                                Gambar area di peta kanan untuk menghitung luas otomatis.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Estimasi Luas (m²)</label>
+                            <div class="input-group">
+                                <input type="number" step="0.01" name="area_size" id="area_size" class="form-control bg-light" placeholder="0.00" readonly>
+                                <span class="input-group-text">m²</span>
+                            </div>
                         </div>
 
                         <input type="hidden" name="geojson_data" id="geojson_data">
 
-                        <div class="flex justify-end">
-                            <a href="{{ route('lands.index') }}" class="px-4 py-2 bg-gray-300 text-gray-800 rounded mr-2">Batal</a>
-                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Simpan Lahan</button>
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                                <i class="bx bx-save me-1"></i> Simpan Lahan
+                            </button>
+                            <a href="{{ route('lands.index') }}" class="btn btn-outline-secondary">Batal</a>
                         </div>
-                    </form>
 
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center border-bottom p-3">
+                        <h5 class="mb-0 card-title"><i class="bx bx-map-alt me-2 text-primary"></i>Peta Lokasi</h5>
+
+                        <div class="d-flex gap-3 text-xs">
+                            <div class="d-flex align-items-center">
+                                <span class="badge badge-dot bg-warning me-1"></span> Lahan Tetangga
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="badge badge-dot bg-primary me-1"></span> Lahan Baru
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-0 position-relative">
+                        <div id="map" style="height: 600px; width: 100%; z-index: 1;"></div>
+
+                        <div class="position-absolute bottom-0 start-0 m-3 p-3 bg-white rounded shadow opacity-90 d-none d-md-block" style="z-index: 400; font-size: 0.8rem; max-width: 250px;">
+                            <strong>Cara Menggambar:</strong>
+                            <ol class="ps-3 mb-0 mt-1">
+                                <li>Pilih tool <i class="bx bx-shape-polygon"></i> (Polygon) di kiri atas peta.</li>
+                                <li>Klik titik-titik sudut lahan.</li>
+                                <li>Klik titik awal lagi untuk menutup area.</li>
+                            </ol>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
+</div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
-    <script>
-        var map = L.map('map').setView([-3.440303, 102.238888], 13); 
+<script>
+    // --- 1. INISIALISASI PETA ---
+    var map = L.map('map').setView([-3.440303, 102.238888], 13);
 
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri', maxZoom: 18
-        }).addTo(map);
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri', maxZoom: 18
-        }).addTo(map);
+    // Layer Satelit (Esri)
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '© Esri, DigitalGlobe', maxZoom: 18
+    }).addTo(map);
 
-        var existingLands = @json($existingLands);
-        var referenceGroup = L.featureGroup();
-        existingLands.forEach(function(land) {
-            try {
-                if (!land.geojson_data) return;
-                var geoJsonData = typeof land.geojson_data === 'string' ? JSON.parse(land.geojson_data) : land.geojson_data;
+    // Layer Jalan/Label (Esri)
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '© Esri', maxZoom: 18
+    }).addTo(map);
 
-                var layer = L.geoJSON(geoJsonData, {
-                    style: {
-                        color: '#f1c40f',
-                        fillColor: '#f1c40f',
-                        fillOpacity: 0.3,
-                        weight: 1,
-                        dashArray: '5, 5'
-                    }
-                });
+    // --- 2. TAMPILKAN LAHAN LAIN (REFERENSI) ---
+    var existingLands = @json($existingLands);
+    var referenceGroup = L.featureGroup();
 
-                layer.bindPopup(`<b>${land.name}</b><br>Luas: ${land.area_size} m²`);
-                layer.addTo(referenceGroup);
+    existingLands.forEach(function(land) {
+        try {
+            if (!land.geojson_data) return;
+            var geoJsonData = typeof land.geojson_data === 'string' ? JSON.parse(land.geojson_data) : land.geojson_data;
 
-            } catch (e) { console.error("Skip land", e); }
-        });
-
-        referenceGroup.addTo(map);
-
-        if (referenceGroup.getLayers().length > 0) {
-            map.fitBounds(referenceGroup.getBounds(), { padding: [50, 50] });
-        }
-
-        var drawnItems = new L.FeatureGroup();
-        map.addLayer(drawnItems);
-
-        var drawControl = new L.Control.Draw({
-            draw: {
-                polygon: true,
-                rectangle: true,
-                circle: false, marker: false, circlemarker: false, polyline: false
-            },
-            edit: {
-                featureGroup: drawnItems,
-                remove: true
-            }
-        });
-        map.addControl(drawControl);
-
-        function updateLandData(layer) {
-            var latlngs = layer.getLatLngs()[0];
-            var area = L.GeometryUtil.geodesicArea(latlngs);
-            document.getElementById('area_size').value = area.toFixed(2);
-
-            var data = drawnItems.toGeoJSON();
-            if (data.features.length > 0) {
-                document.getElementById('geojson_data').value = JSON.stringify(data.features[0]);
-            } else {
-                document.getElementById('geojson_data').value = '';
-            }
-        }
-
-        map.on(L.Draw.Event.CREATED, function (e) {
-            var layer = e.layer;
-
-            drawnItems.clearLayers();
-
-            layer.setStyle({
-                color: '#3388ff',
-                fillColor: '#3388ff',
-                fillOpacity: 0.5
+            var layer = L.geoJSON(geoJsonData, {
+                style: {
+                    color: '#ffab00', // Kuning (Warning) Sneat
+                    fillColor: '#ffab00',
+                    fillOpacity: 0.2,
+                    weight: 1,
+                    dashArray: '5, 5'
+                }
             });
 
-            drawnItems.addLayer(layer);
-            updateLandData(layer);
-        });
+            // Popup ringkas
+            layer.bindPopup(`
+                <div class="text-center">
+                    <strong class="text-warning">${land.name}</strong><br>
+                    <small>${land.area_size} m²</small>
+                </div>
+            `);
+            layer.addTo(referenceGroup);
 
-        // Event Edited
-        map.on(L.Draw.Event.EDITED, function (e) {
-            e.layers.eachLayer(function (layer) { updateLandData(layer); });
-        });
+        } catch (e) { console.error("Skip land", e); }
+    });
 
-        // Event Deleted
-        map.on(L.Draw.Event.DELETED, function (e) {
-            document.getElementById('area_size').value = '';
+    referenceGroup.addTo(map);
+
+    // Auto Zoom ke area yang sudah ada (jika ada)
+    if (referenceGroup.getLayers().length > 0) {
+        map.fitBounds(referenceGroup.getBounds(), { padding: [50, 50] });
+    }
+
+    // --- 3. LOGIKA GAMBAR BARU ---
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    var drawControl = new L.Control.Draw({
+        draw: {
+            polygon: {
+                allowIntersection: false,
+                showArea: true,
+                shapeOptions: { color: '#696cff' } // Ungu (Primary) Sneat
+            },
+            rectangle: false, circle: false, marker: false, circlemarker: false, polyline: false
+        },
+        edit: {
+            featureGroup: drawnItems,
+            remove: true
+        }
+    });
+    map.addControl(drawControl);
+
+    // Fungsi Update Input Form
+    function updateLandData(layer) {
+        var latlngs = layer.getLatLngs()[0];
+        // Hitung Luas Geodesic (Lebih Akurat)
+        var area = L.GeometryUtil.geodesicArea(latlngs);
+        document.getElementById('area_size').value = area.toFixed(2);
+
+        // Update GeoJSON
+        var data = drawnItems.toGeoJSON();
+        if (data.features.length > 0) {
+            document.getElementById('geojson_data').value = JSON.stringify(data.features[0]);
+        } else {
             document.getElementById('geojson_data').value = '';
+        }
+    }
+
+    // EVENT: CREATED
+    map.on(L.Draw.Event.CREATED, function (e) {
+        var layer = e.layer;
+
+        // Hanya boleh satu poligon
+        drawnItems.clearLayers();
+
+        layer.setStyle({
+            color: '#696cff',
+            fillColor: '#696cff',
+            fillOpacity: 0.5
         });
 
-    </script>
-</x-app-layout>
+        drawnItems.addLayer(layer);
+        updateLandData(layer);
+    });
+
+    // EVENT: EDITED
+    map.on(L.Draw.Event.EDITED, function (e) {
+        e.layers.eachLayer(function (layer) { updateLandData(layer); });
+    });
+
+    // EVENT: DELETED
+    map.on(L.Draw.Event.DELETED, function (e) {
+        document.getElementById('area_size').value = '';
+        document.getElementById('geojson_data').value = '';
+    });
+
+</script>
+@endsection

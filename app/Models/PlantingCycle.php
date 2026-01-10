@@ -26,4 +26,19 @@ class PlantingCycle extends Model
     public function getTotalIncomeAttribute() {
         return $this->transactions()->where('type', 'income')->sum('amount');
     }
+
+    // Relasi ke Bedengan
+    public function bed() {
+        return $this->belongsTo(Bed::class);
+    }
+
+    // Relasi ke Komoditas
+    public function commodity() {
+        return $this->belongsTo(Commodity::class);
+    }
+
+    public function logs()
+{
+    return $this->hasMany(CycleLog::class);
+}
 }

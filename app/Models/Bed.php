@@ -22,4 +22,14 @@ class Bed extends Model
     {
         return $this->belongsTo(Sector::class);
     }
+    public function plantingCycles()
+    {
+        return $this->hasMany(PlantingCycle::class);
+    }
+
+    // Helper untuk mengambil siklus yang sedang AKTIF saja
+    public function activePlantingCycle()
+    {
+        return $this->hasOne(PlantingCycle::class)->where('status', 'active')->latest();
+    }
 }

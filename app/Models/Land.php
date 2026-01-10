@@ -20,4 +20,18 @@ class Land extends Model
     public function sectors() {
         return $this->hasMany(Sector::class);
     }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function getIncomeAttribute()
+    {
+        // Menggunakan collection (lebih hemat query jika sudah di-eager load)
+        return $this->transactions->where('type', 'income')->sum('amount');
+
+        // ATAU menggunakan Query langsung (jika data sangat banyak)
+        // return $this->transactions()->where('type', 'income')->sum('amount');
+    }
 }
