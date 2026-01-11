@@ -131,7 +131,7 @@
                                     <span class="text-primary text-xs fw-bold cursor-pointer">
                                         <i class="bx bx-target-lock me-1"></i> Lokasi Peta
                                     </span>
-                                    <a href="{{ route('lands.show', $land->id) }}" class="btn btn-xs btn-label-secondary">
+                                    <a href="{{ route('lands.map_sectors', $land->id) }}" class="btn btn-xs btn-label-secondary">
                                         Detail <i class="bx bx-chevron-right"></i>
                                     </a>
                                 </div>
@@ -204,7 +204,7 @@
                 <div class="text-center p-2">
                     <h6 class="mb-1 text-primary">${land.name}</h6>
                     <span class="badge bg-label-warning mb-2">${land.area_size.toLocaleString('id-ID')} m²</span><br>
-                    <a href="/lands/${land.id}" class="btn btn-xs btn-primary text-white mt-1">Buka Detail</a>
+                    <a href="/lands/${land.id}/map-sectors" class="btn btn-xs btn-primary text-white mt-1">Buka Detail</a>
                 </div>
             `;
             layer.bindPopup(popupContent);
