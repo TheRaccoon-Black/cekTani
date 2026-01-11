@@ -1,6 +1,55 @@
+- ganti semua tileLayer dengan map.google jangan streetmap
+- area report tampilan awalnya di fullkan modalnya (done)
+- pada finance create buat feature untuk milih lokasi expencesnya dari map langsung klik
+- pada bagian /finance harusnya ditable field alokasi misal yang dipilih bedengan/sektor maka bagian sektor/lahannya juga tampil
 - tambahkan manajemen inventaris
 - tambah update untuk transaksi
 - tambhakn table kategori sendiri untuk yang butuh kategori
 - buat transaksi kompleks
-- perbaiki bug layer hilang saat edit
+- perbaiki bug layer hilang saat edit di /lands
 - buat laman khusus untuk melihat pengeluaran pemasukkan dalam satu sektor saja, atau dalam satu lahan, dalam rentang waktu tertentu. data rinci bisa berkaitan dengan tabel lainnya juga yang terkait. bisa pindah pilihan data dengan cepat juga dan catatannya sangat jelas
+ - 1. Modul Pencatatan Panen & Grading (Harvest Management)
+Prioritas: TINGGI (Penyempurna A/B Testing)
+
+Saat ini, siklus dianggap "Selesai" hanya dengan klik tombol. Data hasil panen (Tonase) hilang atau tidak terstruktur.
+
+Fitur:
+
+Multi-Harvest: Cabai/Tomat tidak panen sekali habis. Bisa 10x petik. Sistem harus bisa mencatat: Panen ke-1 (50kg), Panen ke-2 (70kg), dst.
+
+Grading System: Jangan cuma catat "100 Kg". Catatlah:
+
+Grade A (Super): 60 Kg (Harga jual tinggi)
+
+Grade B (Standar): 30 Kg
+
+Grade C (BS/Rusak): 10 Kg
+
+Foto Bukti Panen: Upload foto hasil timbangan.
+
+Impact Analisis:
+
+Anda bisa menghitung Yield per Hectare (Ton/Ha).
+
+Anda bisa menghitung HPP per Kg (Cost per Kg). Ini "Holy Grail"-nya data pertanian.
+
+2. Modul Inventori & Gudang (Inventory System)
+Prioritas: MENENGAH (Penyempurna Keuangan)
+
+Saat ini, saat beli pupuk 50kg seharga 500rb, Anda langsung catat sebagai Pengeluaran. Padahal mungkin pupuk itu baru dipakai 2kg.
+
+Fitur:
+
+Master Barang: Database Pupuk, Obat, Benih.
+
+Stok Masuk (Belanja): Masuk ke Gudang, mengurangi Kas.
+
+Stok Keluar (Pemakaian): Saat input Log Harian, pilih "Pakai NPK 2kg".
+
+Stock Alert: Notifikasi jika stok menipis.
+
+Impact Analisis:
+
+Mencegah kebocoran/pencurian barang di gudang.
+
+Menghitung biaya real-time per tanaman secara sangat presisi.

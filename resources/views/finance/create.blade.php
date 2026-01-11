@@ -104,6 +104,13 @@
                             </div>
                         </div>
 
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Keterangan</label>
+                            <div class="input-group input-group-merge">
+                                <textarea name="description" class="form-control" rows="3" placeholder="Catatan tambahan..."></textarea>
+                            </div>
+                        </div>
+
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg shadow-sm">
                                 <i class="bx bx-save me-1"></i> Simpan Transaksi

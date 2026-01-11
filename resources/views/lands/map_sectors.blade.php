@@ -281,7 +281,7 @@
 
     const map = L.map('map', { zoomControl: false });
     L.control.zoom({ position: 'topright' }).addTo(map);
-    L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'] }).addTo(map);
+    L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ maxZoom: 24, subdomains:['mt0','mt1','mt2','mt3'] }).addTo(map);
 
     const landLayer = L.geoJSON(landGeoJson, { style: { color: '#fff', weight: 2, dashArray: '5,5', fillOpacity: 0 } }).addTo(map);
     map.fitBounds(landLayer.getBounds());

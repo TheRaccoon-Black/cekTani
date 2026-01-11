@@ -263,7 +263,7 @@
 
     @else
         <div class="row justify-content-center mt-5">
-            <div class="col-md-6 text-center">
+            <div class="col-md-12 text-center">
                 <div class="card p-5 shadow-sm">
                     <div class="mb-4">
                         <span class="avatar avatar-xl rounded-circle bg-label-primary p-4">
