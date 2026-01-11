@@ -75,14 +75,14 @@
             <li class="menu-item {{ request()->routeIs('lands.*') || request()->routeIs('sectors.*') ? 'active' : '' }}">
               <a href="{{ route('lands.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-map-alt"></i>
-                <div data-i18n="Peta Lahan">Peta Lahan</div>
+                <div data-i18n="Peta Lahan">Manajemen Lahan</div>
               </a>
             </li>
 
             <li class="menu-item {{ request()->routeIs('commodities.*') ? 'active' : '' }}">
               <a href="{{ route('commodities.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-leaf"></i>
-                <div data-i18n="Komoditas">Data Tanaman</div>
+                <div data-i18n="Komoditas">Master Tanaman</div>
               </a>
             </li>
 
@@ -99,10 +99,29 @@
 
             <li class="menu-item {{ request()->routeIs('finance.index') ? 'active' : '' }}">
               <a href="{{ route('finance.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-wallet"></i>
-                <div data-i18n="Laporan">Laporan Keuangan</div>
+                <i class="menu-icon tf-icons bx bx-book-content"></i>
+                <div data-i18n="Laporan">Buku Besar</div>
               </a>
             </li>
+
+            <li class="menu-item {{ request()->routeIs('finance.area_report') ? 'active' : '' }}">
+              <a href="{{ route('finance.area_report') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-pie-chart-alt-2"></i>
+                <div data-i18n="Profitabilitas">Profitabilitas Area</div>
+              </a>
+            </li>
+
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Analisis</span>
+            </li>
+
+            <li class="menu-item {{ request()->routeIs('analysis.comparison') ? 'active' : '' }}">
+              <a href="{{ route('analysis.comparison') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-analyse"></i>
+                <div data-i18n="AB Testing">A/B Testing (Komparasi)</div>
+              </a>
+            </li>
+
           </ul>
         </aside>
         <div class="layout-page">
@@ -153,7 +172,7 @@
                     <li>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <a class="dropdown-item" href="route('logout')"
+                            <a class="dropdown-item" href="{{ route('logout') }}"
                                     onclick="event.preventDefault(); this.closest('form').submit();">
                                 <i class="bx bx-power-off me-2"></i>
                                 <span class="align-middle">Log Out</span>
@@ -162,12 +181,11 @@
                     </li>
                   </ul>
                 </li>
-              </ul>
+                </ul>
             </div>
           </nav>
           <div class="content-wrapper">
             @yield('content')
-
             <footer class="content-footer footer bg-footer-theme">
               <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
                 <div class="mb-2 mb-md-0">
@@ -176,11 +194,11 @@
                 </div>
               </div>
             </footer>
-
             <div class="content-backdrop fade"></div>
           </div>
+          </div>
         </div>
-      </div>
+
       <div class="layout-overlay layout-menu-toggle"></div>
     </div>
 

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BedController;
 use App\Http\Controllers\LandController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\CycleLogController;
 use App\Http\Controllers\CommodityController;
 use App\Http\Controllers\DashboardController;
@@ -71,6 +72,10 @@ Route::post('/cycles/{id}/transaction', [TransactionController::class, 'storeFor
 Route::prefix('cycles')->group(function () {
     Route::put('/{id}/harvest', [PlantingCycleController::class, 'harvest'])->name('cycles.harvest');
 });
+
+Route::get('/finance/area-report', [TransactionController::class, 'areaReport'])->name('finance.area_report');
+
+Route::get('/analysis/comparison', [AnalysisController::class, 'comparison'])->name('analysis.comparison');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::middleware('auth')->group(function () {

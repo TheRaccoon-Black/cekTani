@@ -3,3 +3,4 @@
 - tambhakn table kategori sendiri untuk yang butuh kategori
 - buat transaksi kompleks
 - perbaiki bug layer hilang saat edit
+- buat laman khusus untuk melihat pengeluaran pemasukkan dalam satu sektor saja, atau dalam satu lahan, dalam rentang waktu tertentu. data rinci bisa berkaitan dengan tabel lainnya juga yang terkait. bisa pindah pilihan data dengan cepat juga dan catatannya sangat jelas
