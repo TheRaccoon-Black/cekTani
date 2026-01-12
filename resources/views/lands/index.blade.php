@@ -194,9 +194,6 @@
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                             <div class="dropdown-header text-uppercase text-muted fs-tiny">Navigasi</div>
-                            <a class="dropdown-item" href="{{ route('lands.show', $land->id) }}">
-                                <i class="bx bx-map-alt me-2 text-primary"></i> Peta Satelit
-                            </a>
                             <a class="dropdown-item" href="{{ route('lands.map_sectors', $land->id) }}">
                                 <i class="bx bx-grid-alt me-2 text-info"></i> Layout Sektor
                             </a>

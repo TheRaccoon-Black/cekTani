@@ -37,7 +37,6 @@
                                         <h3 class="mb-0">{{ $lands->count() }} Unit</h3>
                                     </div>
                                 </div>
-                                <div id="profileReportChart"></div>
                                 <div class="avatar avatar-lg">
                                     <span class="avatar-initial rounded bg-label-primary">
                                         <i class="bx bx-map-pin fs-1"></i>
@@ -174,16 +173,12 @@
 </style>
 
 <script>
-    // --- 1. INISIALISASI PETA ---
+
     var map = L.map('map', { scrollWheelZoom: false }).setView([-2.5, 118.0], 5);
 
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: '© Esri', maxZoom: 18
-    }).addTo(map);
-
-    // Menambahkan Label Jalan (Hybrid) agar lebih jelas
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-        attribution: '© Esri', maxZoom: 18
+    L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     }).addTo(map);
 
     // --- 2. RENDER DATA ---
@@ -196,13 +191,14 @@
             var geoJsonData = typeof land.geojson_data === 'string' ? JSON.parse(land.geojson_data) : land.geojson_data;
             if (!geoJsonData) return;
 
+            // Warna Polygon Kuning/Orange
             var layer = L.geoJSON(geoJsonData, {
-                style: { color: '#ffab00', weight: 2, fillColor: '#ffab00', fillOpacity: 0.4 } // Warna Kuning/Orange Sneat
+                style: { color: '#ffab00', weight: 2, fillColor: '#ffab00', fillOpacity: 0.4 }
             });
 
             var popupContent = `
                 <div class="text-center p-2">
-                    <h6 class="mb-1 text-primary">${land.name}</h6>
+                    <h6 class="mb-1 text-primary fw-bold">${land.name}</h6>
                     <span class="badge bg-label-warning mb-2">${land.area_size.toLocaleString('id-ID')} m²</span><br>
                     <a href="/lands/${land.id}/map-sectors" class="btn btn-xs btn-primary text-white mt-1">Buka Detail</a>
                 </div>
@@ -240,11 +236,9 @@
         var layer = layersMap[id];
         if (!layer) return;
 
-        // Scroll halus ke peta
         document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-        // Zoom ke lokasi
-        map.fitBounds(layer.getBounds(), { maxZoom: 17 });
+        map.fitBounds(layer.getBounds(), { maxZoom: 18 });
 
         setTimeout(() => { layer.openPopup(); }, 800);
 
@@ -252,15 +246,12 @@
     };
 
     function highlightCard(id) {
-        // Hapus kelas aktif dari semua kartu
         document.querySelectorAll('.hover-card').forEach(el => el.classList.remove('card-active'));
 
         // Tambah kelas ke kartu yang dipilih
         var card = document.getElementById('card-' + id);
         if(card) {
             card.classList.add('card-active');
-            // Scroll ke kartu jika perlu (opsional)
-            // card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }
 

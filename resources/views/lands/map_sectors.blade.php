@@ -29,7 +29,7 @@
                     </div>
                 </div>
                 <div class="card-body p-0 position-relative bg-light">
-                    <div id="map" style="height: 550px; width: 100%; z-index: 1;"></div>
+                    <div id="map" style="height: 100%; width: 100%; z-index: 1;"></div>
                 </div>
             </div>
         </div>
@@ -60,14 +60,15 @@
                 <div class="card-header border-bottom p-2">
                     <ul class="nav nav-pills nav-fill" role="tablist">
                         <li class="nav-item">
-                            <button class="nav-link active" id="tab-list" onclick="switchTab('list')"><i class="bx bx-list-ul me-1"></i> Data</button>
+                            <button class="nav-link active" id="tab-list" onclick="switchTab('list')"><i class="bx bx-list-ul me-1"></i> Data Sektor</button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link" id="tab-form" onclick="switchTab('form')"><i class="bx bx-pencil me-1"></i> Gambar</button>
+                            <button class="nav-link" id="tab-form" onclick="switchTab('form')"><i class="bx bx-pencil me-1"></i> Gambar Baru</button>
                         </li>
                     </ul>
                 </div>
                 <div class="card-body p-0 d-flex flex-column h-100 overflow-hidden">
+
                     <div id="content-list" class="flex-grow-1 overflow-auto">
                         @if($land->sectors->count() > 0)
                             <div class="list-group list-group-flush">
@@ -78,29 +79,37 @@
                                         <small class="text-muted">{{ number_format($sector->area_size, 0) }} m²</small>
                                     </div>
 
+                                    {{-- LOGIKA BARU: MENAMPILKAN MULTI CROP --}}
                                     @php
                                         $activeCount = 0;
-                                        $commodityName = '-';
+                                        $commodities = [];
+
                                         foreach($sector->beds as $bed) {
                                             if($bed->activePlantingCycle) {
                                                 $activeCount += $bed->activePlantingCycle->current_plant_count;
-                                                $commodityName = $bed->activePlantingCycle->commodity->name;
+                                                $commodities[] = $bed->activePlantingCycle->commodity->name;
                                             }
                                         }
+
+                                        // Hapus duplikat dan gabungkan string
+                                        $uniqueCommodities = array_unique($commodities);
+                                        $displayCommodity = implode(', ', $uniqueCommodities);
                                     @endphp
 
                                     @if($activeCount > 0)
                                         <div class="d-flex align-items-center mt-1">
-                                            <span class="badge bg-label-success fs-tiny me-2">{{ $commodityName }}</span>
-                                            <small class="text-muted fs-tiny">{{ $activeCount }} Pohon</small>
+                                            <span class="badge bg-label-success fs-tiny me-2 text-truncate" style="max-width: 150px;" title="{{ $displayCommodity }}">
+                                                {{ $displayCommodity }}
+                                            </span>
+                                            <small class="text-muted fs-tiny">{{ number_format($activeCount) }} Pohon</small>
                                         </div>
                                     @else
                                         <small class="text-muted fs-tiny fst-italic">Belum ada tanaman aktif</small>
                                     @endif
 
                                     <div class="d-flex gap-2 mt-2 pt-2 border-top">
-                                        <a href="{{ route('sectors.beds.index', $sector->id) }}" class="btn btn-xs btn-outline-primary flex-grow-1">Kelola</a>
-                                        <form action="{{ route('sectors.destroy', $sector->id) }}" method="POST" onsubmit="return confirm('Hapus?');">
+                                        <a href="{{ route('sectors.beds.index', $sector->id) }}" class="btn btn-xs btn-outline-primary flex-grow-1">Kelola Bedengan</a>
+                                        <form action="{{ route('sectors.destroy', $sector->id) }}" method="POST" onsubmit="return confirm('Hapus sektor ini beserta semua bedengannya?');">
                                             @csrf @method('DELETE')
                                             <button class="btn btn-xs btn-icon btn-label-danger"><i class="bx bx-trash"></i></button>
                                         </form>
@@ -109,24 +118,30 @@
                                 @endforeach
                             </div>
                         @else
-                            <div class="text-center py-5"><small class="text-muted">Belum ada sektor.</small></div>
+                            <div class="text-center py-5">
+                                <i class="bx bx-map fs-1 text-muted mb-2"></i>
+                                <p class="text-muted small">Belum ada sektor dibuat.<br>Gunakan tab <strong>"Gambar"</strong> untuk membuat.</p>
+                            </div>
                         @endif
                     </div>
 
                     <div id="content-form" class="hidden flex-grow-1 p-4">
+                        <div class="alert alert-info py-2 mb-3 fs-tiny">
+                            <i class="bx bx-info-circle me-1"></i> Gunakan alat gambar di peta (sebelah kiri) untuk membuat area sektor.
+                        </div>
                         <form action="{{ route('sectors.store', $land->id) }}" method="POST">
                             @csrf
                             <div class="mb-3">
-                                <label class="form-label">Nama Blok</label>
-                                <input type="text" name="name" class="form-control" placeholder="Blok A" required>
+                                <label class="form-label">Nama Sektor / Blok</label>
+                                <input type="text" name="name" class="form-control" placeholder="Contoh: Blok A (Utara)" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Luas (m²)</label>
-                                <input type="text" id="display_area" readonly class="form-control bg-light" placeholder="Gambar dulu...">
+                                <label class="form-label">Luas Tergambar (m²)</label>
+                                <input type="text" id="display_area" readonly class="form-control bg-light" placeholder="Gambar di peta dulu...">
                             </div>
                             <input type="hidden" name="geojson_data" id="geojson_input">
                             <input type="hidden" name="area_size" id="area_input">
-                            <button type="submit" id="btnSubmit" disabled class="btn btn-primary w-100">Simpan</button>
+                            <button type="submit" id="btnSubmit" disabled class="btn btn-primary w-100">Simpan Sektor</button>
                         </form>
                     </div>
                 </div>
@@ -147,34 +162,38 @@
                                 <th>Sektor</th>
                                 <th>Komoditas</th>
                                 <th>Populasi</th>
-                                <th>Estimasi Panen</th>
-                                <th>Status</th>
+                                <th>Estimasi Panen Terdekat</th>
+                                <th>Progress</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($land->sectors as $sector)
                                 @php
                                     $hasPlant = false;
-                                    $mainCrop = '-';
+                                    $crops = [];
                                     $population = 0;
                                     $harvestDate = null;
 
                                     foreach($sector->beds as $bed) {
                                         if($c = $bed->activePlantingCycle) {
                                             $hasPlant = true;
-                                            $mainCrop = $c->commodity->name;
+                                            $crops[] = $c->commodity->name;
                                             $population += $c->current_plant_count;
+
+                                            // Ambil tanggal panen yang paling dekat
                                             if(is_null($harvestDate) || $c->estimated_harvest_date < $harvestDate) {
                                                 $harvestDate = $c->estimated_harvest_date;
                                             }
                                         }
                                     }
+                                    // Multi crop logic for Table
+                                    $cropList = empty($crops) ? '-' : implode(', ', array_unique($crops));
                                 @endphp
                                 <tr>
                                     <td><strong>{{ $sector->name }}</strong></td>
                                     <td>
                                         @if($hasPlant)
-                                            <span class="badge bg-label-success">{{ $mainCrop }}</span>
+                                            <span class="badge bg-label-success" title="{{ $cropList }}">{{ \Illuminate\Support\Str::limit($cropList, 20) }}</span>
                                         @else
                                             <span class="badge bg-label-secondary">Kosong</span>
                                         @endif
@@ -182,7 +201,7 @@
                                     <td>{{ $hasPlant ? number_format($population) . ' Pht' : '-' }}</td>
                                     <td>
                                         @if($harvestDate)
-                                            {{ \Carbon\Carbon::parse($harvestDate)->format('d M Y') }}
+                                            <span class="text-primary fw-bold">{{ \Carbon\Carbon::parse($harvestDate)->format('d M Y') }}</span>
                                             <br><small class="text-muted">({{ \Carbon\Carbon::parse($harvestDate)->diffForHumans() }})</small>
                                         @else
                                             -
@@ -191,14 +210,15 @@
                                     <td>
                                         @if($hasPlant)
                                             <div class="progress" style="height: 6px; width: 80px;">
-                                                <div class="progress-bar bg-success" style="width: {{ rand(20, 80) }}%"></div> </div>
+                                                <div class="progress-bar bg-success" style="width: {{ rand(20, 80) }}%"></div>
+                                            </div>
                                         @else
                                             <span class="text-muted fs-tiny">Tidak aktif</span>
                                         @endif
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="text-center text-muted">Belum ada data sektor.</td></tr>
+                                <tr><td colspan="5" class="text-center text-muted py-4">Belum ada data sektor.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -258,6 +278,7 @@
 <script>
     const landGeoJson = {!! json_encode($land->geojson_data) !!};
 
+    // GENERATE DATA SEKTOR DARI PHP KE JS
     const sectors = [
         @foreach($land->sectors as $s)
         {
@@ -267,22 +288,27 @@
             area: "{{ number_format($s->area_size, 0, ',', '.') }}",
             url: "{{ route('sectors.beds.index', $s->id) }}",
             @php
-                $crop = null;
+                // LOGIKA MULTI CROP UNTUK POPUP MAP
+                $crops = [];
                 foreach($s->beds as $b) {
                     if($b->activePlantingCycle) {
-                        $crop = $b->activePlantingCycle->commodity->name; break;
+                        $crops[] = $b->activePlantingCycle->commodity->name;
                     }
                 }
+                $crops = array_unique($crops);
+                $cropString = implode(', ', $crops);
             @endphp
-            crop: "{{ $crop ?? '' }}"
+            crop: "{{ $cropString }}" // Hasil: "Jagung, Cabai"
         },
         @endforeach
     ];
 
+    // INISIALISASI MAP
     const map = L.map('map', { zoomControl: false });
     L.control.zoom({ position: 'topright' }).addTo(map);
     L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ maxZoom: 24, subdomains:['mt0','mt1','mt2','mt3'] }).addTo(map);
 
+    // GAMBAR BATAS LAHAN UTAMA
     const landLayer = L.geoJSON(landGeoJson, { style: { color: '#fff', weight: 2, dashArray: '5,5', fillOpacity: 0 } }).addTo(map);
     map.fitBounds(landLayer.getBounds());
 
@@ -296,24 +322,26 @@
         return '#' + "00000".substring(0, 6 - c.length) + c;
     }
 
+    // GAMBAR SEKTOR YANG SUDAH ADA
     sectors.forEach(s => {
         if(s.geojson) {
             const color = stringToColor(s.name);
-            const fillOp = s.crop ? 0.6 : 0.3;
+            const fillOp = s.crop ? 0.6 : 0.3; // Lebih gelap jika ada tanaman
 
             const layer = L.geoJSON(s.geojson, {
                 style: { color: color, weight: 2, fillColor: color, fillOpacity: fillOp }
             });
 
+            // LOGIKA BADGE STATUS DI POPUP
             let statusBadge = s.crop
-                ? `<span class="badge bg-success mb-2">🌽 ${s.crop}</span>`
+                ? `<span class="badge bg-success mb-2">${s.crop}</span>`
                 : `<span class="badge bg-secondary mb-2">Kosong</span>`;
 
             const popupHtml = `
                 <div>
-                    <h6 class="mb-1 text-primary">${s.name}</h6>
+                    <h6 class="mb-1 text-primary fw-bold">${s.name}</h6>
                     ${statusBadge}<br>
-                    <small>${s.area} m²</small><br>
+                    <small class="text-muted">${s.area} m²</small><br>
                     <a href="${s.url}" class="btn btn-xs btn-primary mt-2">Lihat Detail</a>
                 </div>
             `;
@@ -323,25 +351,42 @@
         }
     });
 
+    // INISIALISASI DRAW CONTROL (GAMBAR BARU)
     const drawControl = new L.Control.Draw({
-        draw: { polygon: { allowIntersection: false, showArea: true, shapeOptions: { color: '#ffab00' } }, marker: false, circle: false, circlemarker: false, polyline: false, rectangle: true },
+        draw: {
+            polygon: { allowIntersection: false, showArea: true, shapeOptions: { color: '#ffab00' } },
+            marker: false, circle: false, circlemarker: false, polyline: false, rectangle: true
+        },
         edit: { featureGroup: drawnItems, remove: true }
     });
     map.addControl(drawControl);
 
+    // EVENT SAAT GAMBAR SELESAI
     map.on(L.Draw.Event.CREATED, function (e) {
-        switchTab('form');
+        switchTab('form'); // Pindah ke tab form
         const layer = e.layer;
         const geojson = layer.toGeoJSON();
-        if (!turf.booleanContains(landGeoJson, geojson)) { alert("⚠️ Area keluar batas lahan!"); return; }
-        drawnItems.clearLayers(); drawnItems.addLayer(layer);
+
+        // Cek apakah gambar keluar dari lahan utama
+        if (!turf.booleanContains(landGeoJson, geojson)) {
+            alert("Area keluar batas lahan utama!");
+            return;
+        }
+
+        drawnItems.clearLayers();
+        drawnItems.addLayer(layer);
+
+        // Hitung luas
         const area = turf.area(geojson);
+
+        // Isi form otomatis
         document.getElementById('display_area').value = new Intl.NumberFormat('id-ID').format(area.toFixed(2)) + " m²";
         document.getElementById('area_input').value = area.toFixed(2);
         document.getElementById('geojson_input').value = JSON.stringify(geojson);
+
         const btn = document.getElementById('btnSubmit');
         btn.disabled = false;
-        btn.innerHTML = "Simpan";
+        btn.innerHTML = "Simpan Sektor";
     });
 
     map.on(L.Draw.Event.DELETED, function() {
@@ -349,11 +394,15 @@
         document.getElementById('display_area').value = "";
     });
 
-    // Helpers
+    // HELPERS JS
     window.zoomToSector = function(id) {
         const layer = sectorLayers[id];
-        if(layer) { map.fitBounds(layer.getBounds()); layer.openPopup(); }
+        if(layer) {
+            map.fitBounds(layer.getBounds());
+            layer.openPopup();
+        }
     };
+
     window.switchTab = function(tab) {
         if(tab === 'list') {
             document.getElementById('content-list').classList.remove('hidden');

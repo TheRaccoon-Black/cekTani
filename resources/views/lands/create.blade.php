@@ -107,19 +107,15 @@
 
 <script>
     // --- 1. INISIALISASI PETA ---
-    var map = L.map('map').setView([-3.440303, 102.238888], 13);
+    // Menggunakan Google Maps Satellite Hybrid (lyrs=s,h)
 
-    // Layer Satelit (Esri)
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: '© Esri, DigitalGlobe', maxZoom: 18
+    var map = L.map('map').setView([-2.5, 118.0], 5); // Default Indonesia Center
+
+    L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     }).addTo(map);
 
-    // Layer Jalan/Label (Esri)
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-        attribution: '© Esri', maxZoom: 18
-    }).addTo(map);
-
-    // --- 2. TAMPILKAN LAHAN LAIN (REFERENSI) ---
     var existingLands = @json($existingLands);
     var referenceGroup = L.featureGroup();
 
@@ -138,7 +134,6 @@
                 }
             });
 
-            // Popup ringkas
             layer.bindPopup(`
                 <div class="text-center">
                     <strong class="text-warning">${land.name}</strong><br>
@@ -152,7 +147,6 @@
 
     referenceGroup.addTo(map);
 
-    // Auto Zoom ke area yang sudah ada (jika ada)
     if (referenceGroup.getLayers().length > 0) {
         map.fitBounds(referenceGroup.getBounds(), { padding: [50, 50] });
     }
@@ -166,7 +160,7 @@
             polygon: {
                 allowIntersection: false,
                 showArea: true,
-                shapeOptions: { color: '#696cff' } // Ungu (Primary) Sneat
+                shapeOptions: { color: '#696cff' }
             },
             rectangle: false, circle: false, marker: false, circlemarker: false, polyline: false
         },
@@ -177,14 +171,11 @@
     });
     map.addControl(drawControl);
 
-    // Fungsi Update Input Form
     function updateLandData(layer) {
         var latlngs = layer.getLatLngs()[0];
-        // Hitung Luas Geodesic (Lebih Akurat)
         var area = L.GeometryUtil.geodesicArea(latlngs);
         document.getElementById('area_size').value = area.toFixed(2);
 
-        // Update GeoJSON
         var data = drawnItems.toGeoJSON();
         if (data.features.length > 0) {
             document.getElementById('geojson_data').value = JSON.stringify(data.features[0]);
@@ -193,11 +184,9 @@
         }
     }
 
-    // EVENT: CREATED
     map.on(L.Draw.Event.CREATED, function (e) {
         var layer = e.layer;
 
-        // Hanya boleh satu poligon
         drawnItems.clearLayers();
 
         layer.setStyle({
@@ -210,12 +199,10 @@
         updateLandData(layer);
     });
 
-    // EVENT: EDITED
     map.on(L.Draw.Event.EDITED, function (e) {
         e.layers.eachLayer(function (layer) { updateLandData(layer); });
     });
 
-    // EVENT: DELETED
     map.on(L.Draw.Event.DELETED, function (e) {
         document.getElementById('area_size').value = '';
         document.getElementById('geojson_data').value = '';
