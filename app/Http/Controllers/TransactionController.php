@@ -155,7 +155,6 @@ class TransactionController extends Controller
         $transactions = $query->orderBy('transaction_date', 'desc')->get();
 
         $directIncome = $transactions->where('type', 'income')->sum('amount');
-
         $cashExpense = $transactions->where('type', 'expense')->sum('amount');
         $internalCost = $transactions->where('type', 'cost_allocation')->sum('amount');
 
@@ -186,7 +185,6 @@ class TransactionController extends Controller
                         ->whereBetween('transaction_date', [$startDate, $endDate])
                         ->selectRaw('
                             SUM(CASE WHEN type = "income" THEN amount ELSE 0 END) as income,
-                            -- Di sini expense + cost_allocation dijumlahkan agar alokasi stok umum (pupuk lahan) terhitung
                             SUM(CASE WHEN type IN ("expense", "cost_allocation") THEN amount ELSE 0 END) as expense
                         ')->first();
 
@@ -206,6 +204,22 @@ class TransactionController extends Controller
         $incomePerMeter = $totalAreaSize > 0 ? $totalIncome / $totalAreaSize : 0;
         $expensePerMeter = $totalAreaSize > 0 ? $totalExpense / $totalAreaSize : 0;
 
+
+        $hppBreakdown = Transaction::whereBetween('transaction_date', [$startDate, $endDate])
+            ->when($landId, function($q) use ($landId) { $q->where('land_id', $landId); })
+            ->when($sectorId, function($q) use ($sectorId) { $q->where('sector_id', $sectorId); })
+            ->where(function($q) {
+                 $q->where('type', 'cost_allocation')
+                   ->orWhere(function($sub) {
+                       $sub->where('type', 'expense')
+                           ->where('category', '!=', 'Belanja Stok');
+                   });
+            })
+            ->select('category', DB::raw('sum(amount) as total'))
+            ->groupBy('category')
+            ->orderBy('total', 'desc')
+            ->get();
+
         return view('finance.area_report', compact(
             'lands', 'transactions', 'landId', 'sectorId', 'startDate', 'endDate',
             'selectedAreaName', 'totalAreaSize', 'allocationNote',
@@ -213,7 +227,8 @@ class TransactionController extends Controller
             'directIncome', 'directExpense',
             'cashExpense', 'internalCost',
             'allocatedIncome', 'allocatedExpense',
-            'incomePerMeter', 'expensePerMeter'
+            'incomePerMeter', 'expensePerMeter',
+            'hppBreakdown' 
         ));
     }
 }

@@ -11,6 +11,7 @@ use App\Http\Controllers\CommodityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\PlantingCycleController;
 
 /*
@@ -79,7 +80,6 @@ Route::get('/finance/area-report', [TransactionController::class, 'areaReport'])
 
 Route::get('/analysis/comparison', [AnalysisController::class, 'comparison'])->name('analysis.comparison');
 
-// Penjadwalan
 Route::get('/schedules', [ScheduleController::class, 'index'])->name('schedules.index');
 Route::post('/schedules', [ScheduleController::class, 'store'])->name('schedules.store');
 Route::put('/schedules/{id}/complete', [ScheduleController::class, 'complete'])->name('schedules.complete');
@@ -87,6 +87,15 @@ Route::put('/schedules/{id}/complete', [ScheduleController::class, 'complete'])-
 Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
 Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
 Route::post('/inventory/{id}/purchase', [InventoryController::class, 'purchase'])->name('inventory.purchase');
+
+Route::get('/shopping', [ShoppingListController::class, 'index'])->name('shopping.index');
+Route::post('/shopping/session', [ShoppingListController::class, 'storeSession'])->name('shopping.session.store');
+Route::get('/shopping/{id}', [ShoppingListController::class, 'show'])->name('shopping.show');
+Route::delete('/shopping/session/{id}', [ShoppingListController::class, 'destroySession'])->name('shopping.session.destroy');
+
+Route::post('/shopping/{id}/item', [ShoppingListController::class, 'storeItem'])->name('shopping.item.store');
+Route::delete('/shopping/item/{id}', [ShoppingListController::class, 'deleteItem'])->name('shopping.item.destroy');
+Route::post('/shopping/purchase/{id}', [ShoppingListController::class, 'purchaseItem'])->name('shopping.purchase');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::middleware('auth')->group(function () {

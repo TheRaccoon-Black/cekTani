@@ -118,6 +118,13 @@
               </a>
             </li>
 
+            <li class="menu-item {{ request()->routeIs('shopping.*') ? 'active' : '' }}">
+                <a href="{{ route('shopping.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-cart"></i>
+                    <div data-i18n="Belanja">Daftar Belanja</div>
+                </a>
+            </li>
+
             <li class="menu-item {{ request()->routeIs('finance.area_report') ? 'active' : '' }}">
               <a href="{{ route('finance.area_report') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-pie-chart-alt-2"></i>

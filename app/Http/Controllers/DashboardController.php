@@ -52,7 +52,7 @@ class DashboardController extends Controller
         $costPerPlant = ($totalPlants > 0) ? ($productionCostTotal / $totalPlants) : 0;
 
         $expenseBreakdown = (clone $transactionQuery)
-            ->whereIn('type', ['expense', 'cost_allocation'])
+            ->where('type', 'expense')
             ->select('category', DB::raw('sum(amount) as total'))
             ->groupBy('category')
             ->orderBy('total', 'desc')
