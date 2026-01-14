@@ -6,8 +6,10 @@ use App\Http\Controllers\LandController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\CycleLogController;
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\CommodityController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\PlantingCycleController;
 
@@ -76,6 +78,15 @@ Route::prefix('cycles')->group(function () {
 Route::get('/finance/area-report', [TransactionController::class, 'areaReport'])->name('finance.area_report');
 
 Route::get('/analysis/comparison', [AnalysisController::class, 'comparison'])->name('analysis.comparison');
+
+// Penjadwalan
+Route::get('/schedules', [ScheduleController::class, 'index'])->name('schedules.index');
+Route::post('/schedules', [ScheduleController::class, 'store'])->name('schedules.store');
+Route::put('/schedules/{id}/complete', [ScheduleController::class, 'complete'])->name('schedules.complete');
+
+Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
+Route::post('/inventory/{id}/purchase', [InventoryController::class, 'purchase'])->name('inventory.purchase');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::middleware('auth')->group(function () {

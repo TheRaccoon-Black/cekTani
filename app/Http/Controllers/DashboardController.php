@@ -16,19 +16,14 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // --- 0. FILTERING OPTIONS (Fitur Baru) ---
         $selectedLandId = $request->input('land_id');
         $selectedYear = $request->input('year', date('Y'));
-        $selectedMonth = $request->input('month', date('m')); // Default bulan ini
 
-        // Query Base untuk Transaksi (Agar bisa difilter)
         $transactionQuery = Transaction::query()
             ->whereYear('transaction_date', $selectedYear);
 
-        // Query Base untuk Siklus Tanam
         $cycleQuery = PlantingCycle::where('status', 'active');
 
-        // Terapkan Filter Lahan jika dipilih
         if ($selectedLandId) {
             $transactionQuery->where('land_id', $selectedLandId);
             $cycleQuery->whereHas('bed.sector', function ($q) use ($selectedLandId) {
@@ -36,32 +31,28 @@ class DashboardController extends Controller
             });
         }
 
-        // --- 1. RINGKASAN ASET (Berdasarkan Filter) ---
-        $totalLands = Land::count(); // Tetap global
+        $totalLands = Land::count();
         $totalSectors = $selectedLandId ? Sector::where('land_id', $selectedLandId)->count() : Sector::count();
         $totalBeds = $selectedLandId ? Bed::whereHas('sector', function ($q) use ($selectedLandId) {
             $q->where('land_id', $selectedLandId);
         })->count() : Bed::count();
 
-        // --- 2. OPERASIONAL & EFISIENSI ---
         $activeCycles = $cycleQuery->with('commodity', 'bed.sector.land')->get();
         $totalPlants = $activeCycles->sum('current_plant_count');
         $activeBedsCount = $activeCycles->count();
         $occupancyRate = ($totalBeds > 0) ? ($activeBedsCount / $totalBeds) * 100 : 0;
 
-        // --- 3. KEUANGAN (FILTERED) ---
-        // Clone query agar tidak tumpang tindih
         $incomeTotal = (clone $transactionQuery)->where('type', 'income')->sum('amount');
-        $expenseTotal = (clone $transactionQuery)->where('type', 'expense')->sum('amount');
-        $netProfit = $incomeTotal - $expenseTotal;
 
-        // Hitung Average Cost per Plant (Efisiensi)
-        // Total Pengeluaran dibagi Total Tanaman Aktif (Indikator kasar HPP berjalan)
-        $costPerPlant = ($totalPlants > 0) ? ($expenseTotal / $totalPlants) : 0;
+        $cashExpenseTotal = (clone $transactionQuery)->where('type', 'expense')->sum('amount');
+        $netProfit = $incomeTotal - $cashExpenseTotal;
 
-        // --- 4. INSIGHT: STRUKTUR BIAYA (Dimana uang habis?) ---
+        $productionCostTotal = (clone $transactionQuery)->whereIn('type', ['expense', 'cost_allocation'])->sum('amount');
+
+        $costPerPlant = ($totalPlants > 0) ? ($productionCostTotal / $totalPlants) : 0;
+
         $expenseBreakdown = (clone $transactionQuery)
-            ->where('type', 'expense')
+            ->whereIn('type', ['expense', 'cost_allocation'])
             ->select('category', DB::raw('sum(amount) as total'))
             ->groupBy('category')
             ->orderBy('total', 'desc')
@@ -70,8 +61,6 @@ class DashboardController extends Controller
         $costCategories = $expenseBreakdown->pluck('category');
         $costValues = $expenseBreakdown->pluck('total');
 
-        // --- 5. INSIGHT: KESEHATAN TANAMAN (Dari Log Jurnal) ---
-        // Menghitung jumlah isu (Hama/Penyakit) vs Kegiatan Rutin
         $logsQuery = CycleLog::query();
         if ($selectedLandId) {
             $logsQuery->whereHas('plantingCycle.bed.sector', function ($q) use ($selectedLandId) {
@@ -82,7 +71,6 @@ class DashboardController extends Controller
             ->groupBy('phase')
             ->pluck('total', 'phase');
 
-        // --- 6. CHART CASHFLOW (Tetap 12 Bulan dalam Tahun Terpilih) ---
         $chartLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         $incomeData = [];
         $expenseData = [];
@@ -92,44 +80,35 @@ class DashboardController extends Controller
             $expenseData[] = (clone $transactionQuery)->whereMonth('transaction_date', $m)->where('type', 'expense')->sum('amount');
         }
 
-        // --- 7. DATA PENDUKUNG LAIN ---
-        $lands = Land::all(); // Untuk dropdown filter
+        $lands = Land::all();
         $alerts = $activeCycles->filter(function ($cycle) {
             return Carbon::now()->greaterThan(Carbon::parse($cycle->estimated_harvest_date));
         });
 
-        // Tanaman Terbanyak
         $topCommodity = $activeCycles->groupBy('commodity.name')
-            ->sortByDesc(function ($group) {
-                return $group->count();
-            })
-            ->first();
+            ->sortByDesc(function ($group) { return $group->count(); })->first();
         $topCommodityName = $topCommodity ? $activeCycles->where('commodity_id', $topCommodity->first()->commodity_id)->first()->commodity->name : 'N/A';
 
         $harvestHistory = PlantingCycle::where('status', 'harvested')
-            // Filter Lahan jika ada
             ->when($selectedLandId, function ($q) use ($selectedLandId) {
                 $q->whereHas('bed.sector', function ($sq) use ($selectedLandId) {
                     $sq->where('land_id', $selectedLandId);
                 });
             })
-            ->with(['commodity', 'bed.sector', 'transactions']) // Eager load transaksi untuk hitung duit
-            ->orderBy('updated_at', 'desc') // Asumsi updated_at adalah waktu panen selesai
+            ->with(['commodity', 'bed.sector', 'transactions'])
+            ->orderBy('updated_at', 'desc')
             ->take(5)
             ->get()
             ->map(function ($cycle) {
-                // Hitung manual total income dari siklus ini
                 $income = $cycle->transactions->where('type', 'income')->sum('amount');
-                $expense = $cycle->transactions->where('type', 'expense')->sum('amount');
+                $expense = $cycle->transactions->whereIn('type', ['expense', 'cost_allocation'])->sum('amount');
 
                 $cycle->real_profit = $income - $expense;
-                // Metric Paling Penting: Berapa rupiah per pohon?
                 $cycle->rev_per_plant = ($cycle->initial_plant_count > 0) ? ($income / $cycle->initial_plant_count) : 0;
 
                 return $cycle;
             });
 
-        // --- 9. TAMBAHAN INSIGHT: LIVE FEED LAPANGAN (LOGS) ---
         $recentLogs = CycleLog::with(['plantingCycle.bed.sector', 'plantingCycle.commodity'])
             ->when($selectedLandId, function ($q) use ($selectedLandId) {
                 $q->whereHas('plantingCycle.bed.sector', function ($sq) use ($selectedLandId) {
@@ -140,10 +119,11 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->take(6)
             ->get();
+
         return view('dashboard', compact(
             'lands',
             'selectedLandId',
-            'selectedYear', // Data Filter
+            'selectedYear',
             'totalLands',
             'totalSectors',
             'totalBeds',
@@ -152,15 +132,15 @@ class DashboardController extends Controller
             'activeBedsCount',
             'topCommodityName',
             'incomeTotal',
-            'expenseTotal',
+            'cashExpenseTotal',
             'netProfit',
             'costPerPlant',
             'costCategories',
-            'costValues', // Pie Chart Data
-            'logStats', // Bar Chart Data
+            'costValues',
+            'logStats',
             'chartLabels',
             'incomeData',
-            'expenseData', // Line Chart Data
+            'expenseData',
             'alerts', 'harvestHistory', 'recentLogs'
         ));
     }

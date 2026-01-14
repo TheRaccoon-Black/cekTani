@@ -154,38 +154,61 @@
             <h5 class="card-title mb-0">Buku Besar (Detail)</h5>
         </div>
         <div class="table-responsive text-nowrap">
-            <table class="table table-hover">
+            <table class="table table-hover table-striped">
                 <thead class="table-light">
                     <tr>
                         <th>Tanggal</th>
-                        <th>Kategori & Deskripsi</th>
-                        <th>Alokasi</th>
-                        <th class="text-end">Arus Uang</th>
+                        <th>Kategori</th>
+                        <th>Keterangan</th>
+                        <th>Tipe</th>
+                        <th>Alokasi Lahan</th>
+                        <th class="text-end">Nominal</th>
+                        <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach($transactions as $t)
+                <tbody class="table-border-bottom-0">
+                    @forelse($transactions as $t)
                     <tr>
                         <td>{{ \Carbon\Carbon::parse($t->transaction_date)->format('d M Y') }}</td>
+                        <td><span class="fw-bold">{{ $t->category }}</span></td>
                         <td>
-                            <div class="d-flex flex-column">
-                                <span class="fw-semibold">{{ $t->category }}</span>
-                                <small class="text-muted text-xs">{{ Str::limit($t->description, 30) }}</small>
-                            </div>
+                            <small class="text-muted" title="{{ $t->description }}">
+                                {{ \Illuminate\Support\Str::limit($t->description, 30) }}
+                            </small>
                         </td>
                         <td>
-                            @if($t->bed) <span class="badge bg-label-success fs-tiny">Bed: {{ $t->bed->name }}</span>
-                            @elseif($t->sector) <span class="badge bg-label-info fs-tiny">Sektor: {{ $t->sector->name }}</span>
-                            @else <span class="badge bg-label-secondary fs-tiny">Lahan: {{ $t->land->name }}</span>
+                            @if($t->type == 'income')
+                                <span class="badge bg-label-success">Pemasukan</span>
+                            @elseif($t->type == 'expense')
+                                <span class="badge bg-label-danger">Pengeluaran</span>
+                            @elseif($t->type == 'cost_allocation')
+                                <span class="badge bg-label-warning">HPP / Internal</span>
                             @endif
                         </td>
-                        <td class="text-end">
-                            <span class="fw-bold {{ $t->type == 'income' ? 'text-success' : 'text-danger' }}">
-                                {{ $t->type == 'income' ? '+' : '-' }} Rp {{ number_format($t->amount, 0, ',', '.') }}
+                        <td>
+                             <span class="badge bg-label-secondary fs-tiny">
+                                {{ $t->land ? 'Lahan: ' . $t->land->name : 'Operasional Umum / Gudang' }}
                             </span>
                         </td>
+                        <td class="text-end">
+                            @if($t->type == 'income')
+                                <span class="fw-bold text-success">+ Rp {{ number_format($t->amount, 0, ',', '.') }}</span>
+                            @elseif($t->type == 'expense')
+                                <span class="fw-bold text-danger">- Rp {{ number_format($t->amount, 0, ',', '.') }}</span>
+                            @elseif($t->type == 'cost_allocation')
+                                {{-- Tampilkan kuning dan dalam kurung karena ini Non-Tunai --}}
+                                <span class="fw-bold text-warning">(Rp {{ number_format($t->amount, 0, ',', '.') }})</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-icon btn-label-secondary"><i class="bx bx-pencil"></i></button>
+                        </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="7" class="text-center py-5">Belum ada transaksi.</td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

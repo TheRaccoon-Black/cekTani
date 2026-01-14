@@ -96,19 +96,28 @@
                             </div>
 
                             <div class="col-4 border-end">
-                                <span class="d-block text-muted text-xs uppercase fw-bold mb-1">Total Pengeluaran</span>
+                                <span class="d-block text-muted text-xs uppercase fw-bold mb-1">Total Biaya (HPP)</span>
                                 <span class="text-danger fw-bold fs-4">Rp {{ number_format($totalExpense, 0, ',', '.') }}</span>
 
-                                @if($allocatedExpense > 0)
-                                    <div class="text-xs text-muted mt-2 border-top pt-1 d-inline-block text-start">
-                                        <div class="d-flex justify-content-between gap-2">
-                                            <span>Langsung:</span> <strong>{{ number_format($directExpense/1000, 0) }}k</strong>
-                                        </div>
-                                        <div class="d-flex justify-content-between gap-2 text-warning">
-                                            <span>+ Alokasi:</span> <strong>{{ number_format($allocatedExpense/1000, 0) }}k</strong>
-                                        </div>
+                                <div class="text-xs text-muted mt-2 border-top pt-1 d-inline-block text-start w-100 px-2">
+                                    {{-- Tampilkan Breakdown Tunai vs Stok --}}
+                                    <div class="d-flex justify-content-between">
+                                        <span>Tunai:</span>
+                                        <strong>{{ number_format($cashExpense/1000, 0) }}k</strong>
                                     </div>
-                                @endif
+                                    <div class="d-flex justify-content-between text-warning">
+                                        <span>Stok:</span>
+                                        <strong>{{ number_format($internalCost/1000, 0) }}k</strong>
+                                    </div>
+
+                                    {{-- Jika ada alokasi tambahan dari parent --}}
+                                    @if($allocatedExpense > 0)
+                                        <div class="d-flex justify-content-between text-info border-top border-dashed mt-1 pt-1">
+                                            <span>+ Alokasi:</span>
+                                            <strong>{{ number_format($allocatedExpense/1000, 0) }}k</strong>
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
 
                             <div class="col-4">
@@ -236,9 +245,13 @@
                                     <span class="fw-bold text-success">
                                         + Rp {{ number_format($t->amount, 0, ',', '.') }}
                                     </span>
-                                @else
+                                @elseif($t->type == 'expense')
                                     <span class="fw-bold text-danger">
                                         - Rp {{ number_format($t->amount, 0, ',', '.') }}
+                                    </span>
+                                @elseif($t->type == 'cost_allocation')
+                                    <span class="fw-bold text-warning" title="HPP Non-Tunai">
+                                        (Rp {{ number_format($t->amount, 0, ',', '.') }})
                                     </span>
                                 @endif
                             </td>

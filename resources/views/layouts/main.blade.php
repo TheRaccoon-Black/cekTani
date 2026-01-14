@@ -86,6 +86,20 @@
               </a>
             </li>
 
+            <li class="menu-item {{ request()->routeIs('schedules.*') ? 'active' : '' }}">
+                <a href="{{ route('schedules.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-calendar"></i>
+                    <div data-i18n="Kalender">Kalender Tani</div>
+                </a>
+            </li>
+
+            <li class="menu-item {{ request()->routeIs('inventory.*') ? 'active' : '' }}">
+                <a href="{{ route('inventory.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-store-alt"></i>
+                    <div data-i18n="Inventory">Gudang & Stok</div>
+                </a>
+            </li>
+
             <li class="menu-header small text-uppercase">
               <span class="menu-header-text">Keuangan</span>
             </li>

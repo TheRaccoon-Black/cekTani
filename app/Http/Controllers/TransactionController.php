@@ -45,7 +45,7 @@ class TransactionController extends Controller
         $expenseGrowth = $this->calculateGrowth($currentStats->expense, $lastStats->expense);
         $profitGrowth = $this->calculateGrowth($netProfit, ($lastStats->income - $lastStats->expense));
 
-        $expenseBreakdown = (clone $query)->where('type', 'expense')
+        $expenseBreakdown = (clone $query)->whereIn('type', ['expense', 'cost_allocation'])
             ->select('category', DB::raw('SUM(amount) as total'))
             ->groupBy('category')
             ->orderByDesc('total')
@@ -67,7 +67,7 @@ class TransactionController extends Controller
             ->orderBy('date')
             ->get();
 
-        $transactions = (clone $query)->with(['land', 'bed'])->latest('transaction_date')->paginate(10);
+        $transactions = (clone $query)->with(['land', 'bed', 'plantingCycle'])->latest('transaction_date')->paginate(10);
         $lands = Land::select('id', 'name')->get();
 
         return view('finance.index', compact(
@@ -102,7 +102,7 @@ class TransactionController extends Controller
     {
         $request->validate([
             'transaction_date' => 'required|date',
-            'type' => 'required|in:expense,income',
+            'type' => 'required|in:expense,income,cost_allocation',
             'amount' => 'required|numeric|min:0',
             'category' => 'required|string',
             'scope_level' => 'required|in:land,sector,bed',
@@ -137,26 +137,6 @@ class TransactionController extends Controller
         return redirect()->route('finance.index')->with('success', 'Transaksi berhasil dicatat!');
     }
 
-    public function storeForCycle(Request $request, $cycleId)
-    {
-        $cycle = PlantingCycle::with('bed.sector')->findOrFail($cycleId);
-
-        Transaction::create([
-            'user_id' => auth()->id() ?? 1,
-            'planting_cycle_id' => $cycle->id,
-            'bed_id' => $cycle->bed_id,
-            'sector_id' => $cycle->bed->sector_id,
-            'land_id' => $cycle->bed->sector->land_id,
-            'transaction_date' => $request->transaction_date,
-            'type' => $request->type,
-            'amount' => $request->amount,
-            'category' => $request->category,
-            'description' => $request->description,
-        ]);
-
-        return redirect()->back()->with('success', 'Keuangan tercatat!');
-    }
-
     public function areaReport(Request $request)
     {
         $landId = $request->land_id;
@@ -175,13 +155,18 @@ class TransactionController extends Controller
         $transactions = $query->orderBy('transaction_date', 'desc')->get();
 
         $directIncome = $transactions->where('type', 'income')->sum('amount');
-        $directExpense = $transactions->where('type', 'expense')->sum('amount');
+
+        $cashExpense = $transactions->where('type', 'expense')->sum('amount');
+        $internalCost = $transactions->where('type', 'cost_allocation')->sum('amount');
+
+        $directExpense = $cashExpense + $internalCost;
 
         $allocatedIncome = 0;
         $allocatedExpense = 0;
         $selectedAreaName = "Semua Data";
         $totalAreaSize = 0;
         $allocationNote = "";
+
         if ($landId) {
             $land = Land::find($landId);
             $totalLandArea = $land->area_size;
@@ -191,23 +176,24 @@ class TransactionController extends Controller
             if ($sectorId) {
                 $sector = $land->sectors->where('id', $sectorId)->first();
                 if ($sector) {
-                $selectedAreaName .= " > " . $sector->name;
-                $totalAreaSize = $sector->area_size;
+                    $selectedAreaName .= " > " . $sector->name;
+                    $totalAreaSize = $sector->area_size;
 
-                $ratio = ($totalLandArea > 0) ? ($sector->area_size / $totalLandArea) : 0;
+                    $ratio = ($totalLandArea > 0) ? ($sector->area_size / $totalLandArea) : 0;
 
-                $parentStats = Transaction::where('land_id', $landId)
-                    ->whereNull('sector_id')
-                    ->whereBetween('transaction_date', [$startDate, $endDate])
-                    ->selectRaw('
-                    SUM(CASE WHEN type = "income" THEN amount ELSE 0 END) as income,
-                    SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END) as expense
-                ')->first();
+                    $parentStats = Transaction::where('land_id', $landId)
+                        ->whereNull('sector_id')
+                        ->whereBetween('transaction_date', [$startDate, $endDate])
+                        ->selectRaw('
+                            SUM(CASE WHEN type = "income" THEN amount ELSE 0 END) as income,
+                            -- Di sini expense + cost_allocation dijumlahkan agar alokasi stok umum (pupuk lahan) terhitung
+                            SUM(CASE WHEN type IN ("expense", "cost_allocation") THEN amount ELSE 0 END) as expense
+                        ')->first();
 
-                $allocatedIncome = $parentStats->income * $ratio;
-                $allocatedExpense = $parentStats->expense * $ratio;
+                    $allocatedIncome = $parentStats->income * $ratio;
+                    $allocatedExpense = $parentStats->expense * $ratio;
 
-                $allocationNote = "Termasuk alokasi " . round($ratio * 100, 1) . "% dari biaya umum Lahan.";
+                    $allocationNote = "Termasuk alokasi " . round($ratio * 100, 1) . "% dari biaya umum Lahan.";
                 } else {
                     $sectorId = null;
                 }
@@ -221,24 +207,13 @@ class TransactionController extends Controller
         $expensePerMeter = $totalAreaSize > 0 ? $totalExpense / $totalAreaSize : 0;
 
         return view('finance.area_report', compact(
-            'lands',
-            'transactions',
-            'landId',
-            'sectorId',
-            'startDate',
-            'endDate',
-            'selectedAreaName',
-            'totalAreaSize',
-            'allocationNote',
-            'totalIncome',
-            'totalExpense',
-            'profit',
-            'directIncome',
-            'directExpense',
-            'allocatedIncome',
-            'allocatedExpense',
-            'incomePerMeter',
-            'expensePerMeter'
+            'lands', 'transactions', 'landId', 'sectorId', 'startDate', 'endDate',
+            'selectedAreaName', 'totalAreaSize', 'allocationNote',
+            'totalIncome', 'totalExpense', 'profit',
+            'directIncome', 'directExpense',
+            'cashExpense', 'internalCost',
+            'allocatedIncome', 'allocatedExpense',
+            'incomePerMeter', 'expensePerMeter'
         ));
     }
 }

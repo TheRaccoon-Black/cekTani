@@ -3,44 +3,30 @@
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
 
-    <div class="card mb-4">
-        <div class="card-body p-3">
-            <form action="{{ route('dashboard') }}" method="GET" class="row g-3 align-items-center">
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Pilih Lahan (Scope)</label>
-                    <div class="input-group input-group-merge">
-                        <span class="input-group-text"><i class="bx bx-map"></i></span>
-                        <select name="land_id" class="form-select" onchange="this.form.submit()">
-                            <option value="">Semua Lahan (Global)</option>
-                            @foreach($lands as $land)
-                                <option value="{{ $land->id }}" {{ $selectedLandId == $land->id ? 'selected' : '' }}>
-                                    {{ $land->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Periode Tahun</label>
-                    <select name="year" class="form-select" onchange="this.form.submit()">
-                        @for($y = date('Y'); $y >= date('Y')-4; $y--)
-                            <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
-                        @endfor
-                    </select>
-                </div>
-                <div class="col-md-6 text-end">
-                    <div class="d-inline-block text-start">
-                        <small class="text-muted d-block">Filter Aktif:</small>
-                        <span class="badge bg-label-primary">
-                            {{ $selectedLandId ? 'Lahan Spesifik' : 'Semua Lahan' }}
-                        </span>
-                        <span class="badge bg-label-info">Tahun {{ $selectedYear }}</span>
-                    </div>
-                </div>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h4 class="fw-bold py-1 mb-0"><span class="text-muted fw-light">Financial /</span> Executive Dashboard</h4>
+            <small class="text-muted">Analisis performa & kesehatan arus kas.</small>
+        </div>
+        <div class="d-flex gap-2">
+            <form action="{{ route('dashboard') }}" method="GET" class="d-flex gap-2">
+                <select name="land_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">Semua Lahan</option>
+                    @foreach($lands as $l)
+                        <option value="{{ $l->id }}" {{ request('land_id') == $l->id ? 'selected' : '' }}>{{ $l->name }}</option>
+                    @endforeach
+                </select>
+                <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+                    @for($y = date('Y'); $y >= date('Y')-4; $y--)
+                        <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
             </form>
+            <a href="{{ route('finance.create') }}" class="btn btn-primary btn-sm" title="Catat Transaksi"><i class="bx bx-plus"></i></a>
         </div>
     </div>
 
+    {{-- Alert Panen --}}
     @if($alerts->count() > 0)
         <div class="alert alert-danger alert-dismissible shadow-sm mb-4" role="alert">
             <div class="d-flex align-items-center">
@@ -49,13 +35,12 @@
                     <h6 class="alert-heading fw-bold mb-1">{{ $alerts->count() }} Tanaman Perlu Dipanen!</h6>
                     <span>Segera cek area bedengan untuk menghindari pembusukan.</span>
                 </div>
-                <a href="#harvest-section" class="btn btn-sm btn-danger ms-auto">Lihat Detail</a>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
-    <div class="row mb-4">
+    <div class="row mb-4 g-3">
         <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
             <div class="card h-100">
                 <div class="card-body">
@@ -66,7 +51,7 @@
                     <h4 class="mb-1 {{ $netProfit >= 0 ? 'text-success' : 'text-danger' }}">
                         Rp {{ number_format($netProfit / 1000, 0, ',', '.') }}k
                     </h4>
-                    <small class="text-muted">Total: Inc - Exp</small>
+                    <small class="text-muted">Cash Flow Bersih</small>
                 </div>
             </div>
         </div>
@@ -75,11 +60,12 @@
             <div class="card h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <h6 class="card-title mb-0">Total Biaya</h6>
+                        <h6 class="card-title mb-0">Pengeluaran Tunai</h6> {{-- Label Diperjelas --}}
                         <span class="avatar p-2 rounded bg-label-danger"><i class="bx bx-wallet"></i></span>
                     </div>
-                    <h4 class="mb-1 text-danger">Rp {{ number_format($expenseTotal / 1000, 0, ',', '.') }}k</h4>
-                    <small class="text-muted">Modal Keluar</small>
+                    {{-- Gunakan $cashExpenseTotal sesuai controller --}}
+                    <h4 class="mb-1 text-danger">Rp {{ number_format($cashExpenseTotal / 1000, 0, ',', '.') }}k</h4>
+                    <small class="text-muted">Uang Keluar Real</small>
                 </div>
             </div>
         </div>
@@ -92,7 +78,7 @@
                         <span class="avatar p-2 rounded bg-label-warning"><i class="bx bx-calculator"></i></span>
                     </div>
                     <h4 class="mb-1 text-warning">Rp {{ number_format($costPerPlant, 0, ',', '.') }}</h4>
-                    <small class="text-muted">Efisiensi Modal</small>
+                    <small class="text-muted">Biaya Produksi (HPP)</small>
                 </div>
             </div>
         </div>
@@ -130,7 +116,7 @@
             <div class="card h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Struktur Biaya</h5>
-                    <small class="text-muted">Dimana uang dihabiskan?</small>
+                    <small class="text-muted">Termasuk Pemakaian Stok</small>
                 </div>
                 <div class="card-body">
                     <div id="expenseChart" style="min-height: 250px;"></div>
@@ -138,17 +124,23 @@
                     <div class="mt-3">
                         <ul class="p-0 m-0">
                             @foreach($costCategories->take(3) as $index => $cat)
-                            <li class="d-flex mb-3 pb-1 align-items-center">
-                                <div class="badge bg-label-secondary me-3 rounded p-2"><i class="bx bx-money"></i></div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <h6 class="mb-0">{{ $cat }}</h6>
+                                @php
+                                    // Hitung total untuk persentase (Tunai + Stok)
+                                    $totalAllCost = array_sum($costValues->toArray());
+                                    $percent = ($totalAllCost > 0) ? ($costValues[$index] / $totalAllCost) * 100 : 0;
+                                @endphp
+                                <li class="d-flex mb-3 pb-1 align-items-center">
+                                    <div class="badge bg-label-secondary me-3 rounded p-2"><i class="bx bx-money"></i></div>
+                                    <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                                        <div class="me-2">
+                                            <h6 class="mb-0">{{ $cat }}</h6>
+                                        </div>
+                                        <div class="user-progress text-end">
+                                            <h6 class="mb-0 text-danger">Rp {{ number_format($costValues[$index] / 1000, 0) }}k</h6>
+                                            <small class="text-muted">{{ number_format($percent, 1) }}%</small>
+                                        </div>
                                     </div>
-                                    <div class="user-progress">
-                                        <h6 class="mb-0 text-danger">Rp {{ number_format($costValues[$index] / 1000, 0) }}k</h6>
-                                    </div>
-                                </div>
-                            </li>
+                                </li>
                             @endforeach
                         </ul>
                     </div>
@@ -172,116 +164,6 @@
 
         <div class="col-lg-6 mb-4">
             <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Inventaris & Komoditas</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-4 mb-4">
-                        <div class="col-4">
-                            <div class="text-center p-3 border rounded border-dashed">
-                                <span class="badge bg-label-primary rounded p-1 mb-2"><i class="bx bx-map"></i></span>
-                                <h5 class="mb-0">{{ $totalLands }}</h5>
-                                <small>Lahan</small>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="text-center p-3 border rounded border-dashed">
-                                <span class="badge bg-label-info rounded p-1 mb-2"><i class="bx bx-grid-alt"></i></span>
-                                <h5 class="mb-0">{{ $totalSectors }}</h5>
-                                <small>Sektor</small>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="text-center p-3 border rounded border-dashed">
-                                <span class="badge bg-label-warning rounded p-1 mb-2"><i class="bx bx-layer"></i></span>
-                                <h5 class="mb-0">{{ $totalBeds }}</h5>
-                                <small>Bed</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-label-primary p-3 rounded">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar me-3">
-                                <span class="avatar-initial rounded bg-white text-primary"><i class="bx bx-crown"></i></span>
-                            </div>
-                            <div>
-                                <small class="fw-bold text-primary">KOMODITAS TERPOPULER</small>
-                                <h5 class="mb-0 text-primary">{{ $topCommodityName }}</h5>
-                                <small>Mendominasi kebun Anda saat ini.</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-
-        <div class="col-lg-8 mb-4">
-            <div class="card h-100">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <div>
-                        <h5 class="card-title mb-0">Analisa Pasca Panen (Last 5 Cycles)</h5>
-                        <small class="text-muted">Evaluasi performa tanaman yang baru dipanen</small>
-                    </div>
-                </div>
-                <div class="table-responsive text-nowrap">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Tanaman / Lokasi</th>
-                                <th>Populasi</th>
-                                <th class="text-end">Omzet Total</th>
-                                <th class="text-end">Profit Bersih</th>
-                                <th class="text-end">Rev/Pohon</th> </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($harvestHistory as $h)
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar avatar-xs me-2">
-                                            <span class="avatar-initial rounded-circle bg-label-primary">
-                                                {{ substr($h->commodity->name, 0, 1) }}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="fw-bold d-block">{{ $h->commodity->name }}</span>
-                                            <small class="text-muted" style="font-size: 10px;">{{ $h->bed->sector->name }} - {{ $h->bed->name }}</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>{{ $h->initial_plant_count }} Pmt</td>
-                                <td class="text-end fw-bold text-primary">
-                                    Rp {{ number_format($h->transactions->where('type','income')->sum('amount') / 1000, 0) }}k
-                                </td>
-                                <td class="text-end">
-                                    <span class="badge {{ $h->real_profit >= 0 ? 'bg-label-success' : 'bg-label-danger' }}">
-                                        Rp {{ number_format($h->real_profit / 1000, 0) }}k
-                                    </span>
-                                </td>
-                                <td class="text-end fw-bold">
-                                    Rp {{ number_format($h->rev_per_plant, 0, ',', '.') }}
-                                    <i class="bx {{ $h->rev_per_plant > 5000 ? 'bx-trending-up text-success' : 'bx-trending-down text-warning' }}"></i>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">Belum ada data panen yang selesai.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                <div class="card-footer border-top p-3">
-                    <small class="text-muted"><i class="bx bx-info-circle"></i> <strong>Rev/Pohon</strong> adalah rata-rata pendapatan kotor per satu tanaman. Indikator kualitas hasil panen.</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4 mb-4">
-            <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Update Lapangan</h5>
                     <span class="badge bg-label-primary rounded-pill">Terbaru</span>
@@ -295,22 +177,18 @@
                             </span>
                             <div class="timeline-event">
                                 <div class="timeline-header mb-1">
-                                    <h6 class="mb-0 text-sm fw-bold">{{ $log->activity }}</h6>
+                                    <h6 class="mb-0 text-sm fw-bold">{{ $log->activity_description ?? $log->activity }}</h6> {{-- Pastikan nama kolom benar --}}
                                     <small class="text-muted text-xs">{{ \Carbon\Carbon::parse($log->log_date)->diffForHumans() }}</small>
                                 </div>
                                 <div class="d-flex align-items-center mb-1">
                                     <span class="badge badge-center rounded-pill bg-label-secondary w-px-20 h-px-20 me-1">
                                         <i class="bx bx-leaf" style="font-size: 10px;"></i>
                                     </span>
-                                    <small class="text-muted">{{ $log->plantingCycle->commodity->name ?? '-' }} ({{ $log->plantingCycle->bed->name ?? '-' }})</small>
+                                    <small class="text-muted">
+                                        {{ $log->plantingCycle->commodity->name ?? '-' }}
+                                        ({{ $log->plantingCycle->bed->name ?? '-' }})
+                                    </small>
                                 </div>
-
-                                @if($log->notes)
-                                    <div class="bg-label-secondary p-2 rounded mt-2 text-xs text-secondary">
-                                        "{{ Str::limit($log->notes, 60) }}"
-                                    </div>
-                                @endif
-
                                 @if($log->photo_path)
                                     <div class="mt-2">
                                         <a href="{{ asset('storage/' . $log->photo_path) }}" target="_blank">
@@ -327,7 +205,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
 </div>
@@ -335,16 +212,16 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const isDarkStyle = false; 
     const borderColor = '#f5f5f9';
     const headingColor = '#566a7f';
 
+    // 1. CASHFLOW CHART
     const cashflowEl = document.querySelector("#cashflowChart");
     if(cashflowEl) {
         new ApexCharts(cashflowEl, {
             series: [
                 { name: 'Pemasukan', type: 'column', data: {!! json_encode($incomeData) !!} },
-                { name: 'Pengeluaran', type: 'line', data: {!! json_encode($expenseData) !!} }
+                { name: 'Pengeluaran Tunai', type: 'line', data: {!! json_encode($expenseData) !!} }
             ],
             chart: { height: 300, type: 'line', toolbar: { show: false } },
             stroke: { width: [0, 4], curve: 'smooth' },
@@ -364,6 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }).render();
     }
 
+    // 2. EXPENSE BREAKDOWN (Termasuk Stok)
     const expenseEl = document.querySelector("#expenseChart");
     if(expenseEl) {
         const labels = {!! json_encode($costCategories) !!};
@@ -371,20 +249,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if(series.length > 0) {
             new ApexCharts(expenseEl, {
-                series: series,
+                series: series.map(s => parseFloat(s)),
                 labels: labels,
-                chart: { type: 'polarArea', height: 250 },
+                chart: { type: 'donut', height: 250 },
                 stroke: { colors: ['#fff'] },
-                fill: { opacity: 0.8 },
                 colors: ['#696cff', '#03c3ec', '#ff3e1d', '#ffab00', '#71dd37'],
-                legend: { position: 'bottom' },
-                yaxis: { show: false }
+                legend: { position: 'bottom', show: false }, // Legend custom di HTML
+                dataLabels: { enabled: false },
+                plotOptions: {
+                    pie: { donut: { labels: { show: true, total: { show: true, label: 'Total', formatter: (w) => 'Rp ' + (w.globals.seriesTotals.reduce((a, b) => a + b, 0)/1000).toFixed(0) + 'k' } } } }
+                }
             }).render();
         } else {
             expenseEl.innerHTML = "<div class='text-center text-muted py-5'>Belum ada data pengeluaran.</div>";
         }
     }
 
+    // 3. LOG CHART
     const logEl = document.querySelector("#logChart");
     if(logEl) {
         const logStats = {!! json_encode($logStats) !!};
@@ -396,11 +277,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 series: [{ name: 'Frekuensi', data: data }],
                 chart: { type: 'bar', height: 250, toolbar: { show: false } },
                 plotOptions: {
-                    bar: {
-                        horizontal: true,
-                        barHeight: '50%',
-                        borderRadius: 4
-                    }
+                    bar: { horizontal: true, barHeight: '50%', borderRadius: 4 }
                 },
                 colors: ['#03c3ec'],
                 xaxis: { categories: categories },
