@@ -93,13 +93,24 @@
                 </a>
             </li>
 
+
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Logistik</span>
+            </li>
+
+            <li class="menu-item {{ request()->routeIs('shopping.*') ? 'active' : '' }}">
+                <a href="{{ route('shopping.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-cart"></i>
+                    <div data-i18n="Belanja">Daftar Belanja</div>
+                </a>
+            </li>
+
             <li class="menu-item {{ request()->routeIs('inventory.*') ? 'active' : '' }}">
                 <a href="{{ route('inventory.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-store-alt"></i>
                     <div data-i18n="Inventory">Gudang & Stok</div>
                 </a>
             </li>
-
             <li class="menu-header small text-uppercase">
               <span class="menu-header-text">Keuangan</span>
             </li>
@@ -118,12 +129,6 @@
               </a>
             </li>
 
-            <li class="menu-item {{ request()->routeIs('shopping.*') ? 'active' : '' }}">
-                <a href="{{ route('shopping.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-cart"></i>
-                    <div data-i18n="Belanja">Daftar Belanja</div>
-                </a>
-            </li>
 
             <li class="menu-item {{ request()->routeIs('finance.area_report') ? 'active' : '' }}">
               <a href="{{ route('finance.area_report') }}" class="menu-link">
@@ -155,22 +160,17 @@
             </div>
 
             <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-              <div class="navbar-nav align-items-center">
-                <div class="nav-item d-flex align-items-center">
-                  <i class="bx bx-search fs-4 lh-0"></i>
-                  <input
-                    type="text"
-                    class="form-control border-0 shadow-none ps-1 ps-sm-2"
-                    placeholder="Search..."
-                    aria-label="Search..."
-                  />
-                </div>
-              </div>
+              <!-- Search Removed as requested -->
+
               <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <!-- User -->
                 <li class="nav-item navbar-dropdown dropdown-user dropdown">
                   <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                     <div class="avatar avatar-online">
-                      <img src="{{ asset('assets/img/avatars/1.png') }}" alt class="w-px-40 h-auto rounded-circle" />
+                      <!-- Gunakan inisial nama jika tidak ada foto -->
+                      <span class="avatar-initial rounded-circle bg-label-primary">
+                        {{ substr(Auth::user()->name ?? 'U', 0, 1) }}
+                      </span>
                     </div>
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
@@ -179,11 +179,13 @@
                         <div class="d-flex">
                           <div class="flex-shrink-0 me-3">
                             <div class="avatar avatar-online">
-                              <img src="{{ asset('assets/img/avatars/1.png') }}" alt class="w-px-40 h-auto rounded-circle" />
+                              <span class="avatar-initial rounded-circle bg-label-primary">
+                                {{ substr(Auth::user()->name ?? 'U', 0, 1) }}
+                              </span>
                             </div>
                           </div>
                           <div class="flex-grow-1">
-                            <span class="fw-semibold d-block">{{ Auth::user()->name ?? 'Petani' }}</span>
+                            <span class="fw-semibold d-block">{{ Auth::user()->name ?? 'Pengguna' }}</span>
                             <small class="text-muted">Admin</small>
                           </div>
                         </div>
@@ -202,7 +204,8 @@
                     </li>
                   </ul>
                 </li>
-                </ul>
+                <!--/ User -->
+              </ul>
             </div>
           </nav>
           <div class="content-wrapper">

@@ -28,10 +28,10 @@
                         <div class="mb-3">
                              <div class="btn-group w-100 btn-group-sm" role="group">
                                 <input type="radio" class="btn-check" name="type" id="typeStock" value="stock" checked onchange="toggleType('stock')">
-                                <label class="btn btn-outline-primary" for="typeStock">📦 Stok (Gudang)</label>
+                                <label class="btn btn-outline-primary" for="typeStock">Stok (Gudang)</label>
 
                                 <input type="radio" class="btn-check" name="type" id="typeDirect" value="direct" onchange="toggleType('direct')">
-                                <label class="btn btn-outline-warning" for="typeDirect">⚡ Langsung (Lahan)</label>
+                                <label class="btn btn-outline-warning" for="typeDirect">Langsung (Lahan)</label>
                             </div>
                         </div>
 
